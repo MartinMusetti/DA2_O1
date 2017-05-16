@@ -35,7 +35,9 @@ namespace ServicesTests
         private CategoryService getCategoryService()
         {
             GenericRepository<Category> repoInstance = new GenericRepository<Category>(getContext());
-            return new CategoryService(repoInstance);
+            GenericRepository<Product> productRepo = new GenericRepository<Product>(getContext());
+
+            return new CategoryService(repoInstance,productRepo);
         }
 
         private FeatureService getFeatureService()
@@ -491,7 +493,7 @@ namespace ServicesTests
             p.Price = 100;
             p.Category = getCategory();
             service.Add(p);
-            service.Delete(p);
+            service.Delete(p.Id);
             Product savedProduct = service.Get(p.Id);
          }
 
@@ -507,7 +509,7 @@ namespace ServicesTests
             p.Name = "Name";
             p.Price = 100;
             p.Category = getCategory();
-            service.Delete(p);
+            service.Delete(p.Id);
         }
 
         //Delete con ordenes con este producto (borro order products de ordenes haciendose), cambio active a 0
@@ -525,7 +527,7 @@ namespace ServicesTests
             service.Add(p);
 
             Category c2 = getOtherCategory();
-            service.ChangeCategory(p.Id, c2);
+            service.ChangeCategory(p.Id, c2.Id);
 
             Product savedProduct = service.Get(p.Id);
             Assert.AreEqual(c2.Id, savedProduct.Category.Id);
@@ -544,7 +546,7 @@ namespace ServicesTests
             p.Category = getCategory();
             service.Add(p);
 
-            service.ChangeCategory(p.Id, null);
+            service.ChangeCategory(p.Id, Guid.Empty);
 
             Product savedProduct = service.Get(p.Id);
             Assert.AreEqual(null, savedProduct.Category);
@@ -564,7 +566,7 @@ namespace ServicesTests
             Category cat = getCategory();
             p.Category = cat;
             service.Add(p);
-            service.ChangeCategory(p.Id, cat);
+            service.ChangeCategory(p.Id, cat.Id);
         }
 
         [ExpectedException(typeof(ProductChangeCategoryException))]
@@ -581,7 +583,8 @@ namespace ServicesTests
             Category cat = getCategory();
             p.Category = cat;
             service.Add(p);
-            service.ChangeCategory(p.Id, new Category());
+            Category newC = new Category();
+            service.ChangeCategory(p.Id,newC.Id);
         }
 
         [ExpectedException(typeof(ProductNotExistingException))]
@@ -590,7 +593,7 @@ namespace ServicesTests
             ProductService service = getService();
             Product p = new Product();
             Category cat = getCategory();
-            service.ChangeCategory(p.Id, cat);
+            service.ChangeCategory(p.Id, cat.Id);
         }
 
         [TestMethod]

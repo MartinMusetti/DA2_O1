@@ -15,14 +15,7 @@ using Services.Interfaces;
 using Services.Implementations;
 namespace WebApi.Controllers
 {
-    /*
-     private IProductRepository _repository;
 
-    public ProductsController(IProductRepository repository)  
-    {
-        _repository = repository;
-    }
-         */
      
     public class UsersController : ApiController
     {
@@ -132,7 +125,6 @@ namespace WebApi.Controllers
             
         }
 
-        //CASOS: GUID CONSTRUCTOR FAILS
         [Route("api/Users/ChangeRole", Name = "ChangeRole")]
         [HttpPost]
         public IHttpActionResult ChangeUserRole(JObject parameters)
@@ -180,6 +172,127 @@ namespace WebApi.Controllers
             {
                 return BadRequest("Debes enviar todos los datos");
             }
+            catch (RuntimeBinderException ex)
+            {
+                return BadRequest("Debes enviar todos los datos");
+            }
+            catch (ArgumentNullException ex) {
+                return BadRequest("Debes enviar todos los datos");
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest("El Id debe tener 32 caracteres");
+            }
+
+        }
+        //NoUserWithToken 
+        public IHttpActionResult Put(Guid id, [FromBody]User user)
+        {
+            try {
+                var re = Request;
+                var headers = re.Headers;
+
+                if (headers.Contains("Token"))
+                {
+                    string token = headers.GetValues("Token").First();
+                    User loggedUser = _userService.GetFromToken(token);
+                    if (loggedUser.Id == id)
+                    {
+                        loggedUser.FirstName = user.FirstName;
+                        loggedUser.LastName = user.LastName;
+                        loggedUser.Email = user.Email;
+                        loggedUser.PhoneNumber = user.PhoneNumber;
+                        loggedUser.Username = user.Username;
+                        _userService.Modify(loggedUser);
+                        return CreatedAtRoute("DefaultApi", new { id = loggedUser.Id }, loggedUser);
+                    }
+                    return BadRequest("Solo se puede modificar el usuario que tenga sesión activa");
+
+                }
+                return BadRequest("Debes mandar el Token de sesión en los headers");
+            }
+            catch (NoUserWithTokenException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (MissingUserDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ExistingUserException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (WrongNumberFormatException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (WrongEmailFormatException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NullReferenceException ex)
+            {
+                return BadRequest("Debes enviar todos los datos");
+            }
+        }
+
+        public IHttpActionResult Delete(Guid id)
+        {            
+            try
+            {
+                var re = Request;
+                var headers = re.Headers;
+
+                if (headers.Contains("Token"))
+                {
+                    string token = headers.GetValues("Token").First();
+                    User loggedUser = _userService.GetFromToken(token);
+                    if (loggedUser.Id == id)
+                    {
+                        _userService.Delete(id);
+                        return Ok("Se eliminó al usuario con éxito");
+                    }
+                    return BadRequest("Solo se puede modificar el usuario que tenga sesión activa");
+                }
+                return BadRequest("Debes mandar el Token de sesión en los headers");
+            }
+            catch (NoUserWithTokenException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Route("api/Users/ChangePassword", Name = "ChangePassword")]
+        [HttpPost]
+        public IHttpActionResult ChangePassword(JObject parameters)
+        {
+            try
+            {
+                var re = Request;
+                var headers = re.Headers;
+
+                if (headers.Contains("Token"))
+                {
+                    string token = headers.GetValues("Token").First();
+                    User loggedUser = _userService.GetFromToken(token);
+                    dynamic json = parameters;
+                    string oldPassword = json.OldPassword;
+                    string newPassword = json.NewPassword;
+                    _userService.ChangePassword(loggedUser.Id, oldPassword, newPassword);
+                    return Ok("Se cambió la contraseña con éxito");
+                }
+                return BadRequest("Debes mandar el Token de sesión en los headers");
+            }
+            catch (NoUserWithTokenException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (WrongPasswordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
             catch (RuntimeBinderException ex)
             {
                 return BadRequest("Debes enviar todos los datos");

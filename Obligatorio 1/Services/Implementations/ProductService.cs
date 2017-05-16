@@ -32,9 +32,9 @@ namespace Services
             repo.Add(p);
         }
 
-        public void Delete(Product p)
+        public void Delete(Guid pId)
         {
-            Get(p.Id);
+            Product p = Get(pId);
             p.IsActive = false;
             repo.Update(p);
         }
@@ -60,19 +60,22 @@ namespace Services
             return existing;
         }
 
-        public void ChangeCategory(Guid id, Category c2)
+        public void ChangeCategory(Guid id, Guid cId)
         {
             Product p = Get(id);
             MyContext context = repo.GetContext();
-            if (c2 != null)
+            if (cId != Guid.Empty)
             {
-                Category c = context.Categories.Where(ca => ca.Id == c2.Id).FirstOrDefault();
+                Category c = context.Categories.Where(ca => ca.Id == cId).FirstOrDefault();
                 if (c == null)
                 {
                     throw new ProductChangeCategoryException("La categoría nueva no existe");
                 }
-                if (c2.Equals(p.Category))
-                    throw new ProductChangeCategoryException("El producto ya tiene esta categoría");
+                if (p.Category != null) {
+                    if (cId.Equals(p.Category.Id))
+                        throw new ProductChangeCategoryException("El producto ya tiene esta categoría");
+                }
+                
                 p.Category = c;
             }
             else p.Category = null;
@@ -99,6 +102,13 @@ namespace Services
             productFeatureRepo.Update(productFeature);
         }
 
+        public List<ProductFeature> GetAllProductFeaturesFromProduct(Product p)
+        {
+            List<ProductFeature> allProductFeatures = productFeatureRepo.GetAll();
+            List<ProductFeature> productFeatures = allProductFeatures.FindAll(pf => pf.ProductId == p.Id);
+            return productFeatures;
+        }
+
         private void checkIfProductAlreadyHasFeature(Guid featureId,Guid productId)
         {
             List<ProductFeature> allProductFeatures = productFeatureRepo.GetAll();
@@ -120,20 +130,11 @@ namespace Services
 
         }
 
-        public List<ProductFeature> GetAllProductFeaturesFromProduct(Product p)
-        {
-            List<ProductFeature> allProductFeatures = productFeatureRepo.GetAll();
-            List<ProductFeature> productFeatures = allProductFeatures.FindAll(pf => pf.ProductId == p.Id);
-            return productFeatures;
-        }
-
-
-
-
+        
         private void checkForExistingProduct(Product p)
         {
             List<Product> allProducts = repo.GetAll();
-            Product existing = allProducts.Find(prod => prod.Equals(p) && prod.Id != p.Id && prod.IsActive == true);
+            Product existing = allProducts.Find(prod => (prod.Name == p.Name || prod.Code == p.Code) && prod.Id != p.Id && prod.IsActive == true);
             if (existing != null) {
                 throw new ProductDuplicateException("Ya existe un producto con este nombre y/o código");
             }

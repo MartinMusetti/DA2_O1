@@ -276,7 +276,7 @@ namespace ServicesTests
             service.AddAddress(a, u);
             service.AddAddress(a2, u);
 
-            service.RemoveAddress(a2, u);
+            service.RemoveAddress(a2.Id, u);
             List<Address> allAddresses = service.GetAllAddresses(u);
             Address deleted = allAddresses.Find(address => address.Id == a2.Id);
             Assert.IsNull(deleted);
@@ -294,7 +294,7 @@ namespace ServicesTests
             a.PhoneNumber = "26003564";
 
             service.AddAddress(a, u);
-            service.RemoveAddress(u.Address, u);
+            service.RemoveAddress(u.Address.Id, u);
 
             Assert.AreEqual(u.Address.Id, a.Id);
         }
@@ -305,7 +305,7 @@ namespace ServicesTests
         {
             AddressService service = getService();
             User u = getUser();
-            service.RemoveAddress(u.Address, u);
+            service.RemoveAddress(u.Address.Id, u);
         }
         [ExpectedException(typeof(NoUserForAddressException))]
         [TestMethod]
@@ -317,7 +317,7 @@ namespace ServicesTests
             a.Street = "Cartagena";
             a.StreetNumber = "1582";
             a.PhoneNumber = "26003564";
-            service.RemoveAddress(a, u);
+            service.RemoveAddress(a.Id, u);
         }
 
         [ExpectedException (typeof(AddressDeleteNoAddressException))]
@@ -329,7 +329,7 @@ namespace ServicesTests
             a.Street = "Cartagena";
             a.StreetNumber = "1582";
             a.PhoneNumber = "26003564";
-            service.RemoveAddress(a, u);
+            service.RemoveAddress(a.Id, u);
         }
 
         [ExpectedException (typeof(AddressDeleteUserDoesntHaveException))]
@@ -344,7 +344,7 @@ namespace ServicesTests
             a.StreetNumber = "1582";
             a.PhoneNumber = "26003564";
             service.AddAddress(a, u);
-            service.RemoveAddress(a, u2);
+            service.RemoveAddress(a.Id, u2);
         }
 
         [TestMethod]

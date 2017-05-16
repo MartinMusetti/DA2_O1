@@ -24,7 +24,8 @@ namespace ServicesTests
         private CategoryService getService()
         {
             GenericRepository<Category> repo = new GenericRepository<Category>(getContext(),true);
-            return new CategoryService(repo);
+            GenericRepository<Product> pRepo = new GenericRepository<Product>(getContext());
+            return new CategoryService(repo, pRepo);
         }
 
         [TestMethod]

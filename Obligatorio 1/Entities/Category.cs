@@ -48,7 +48,7 @@ namespace Entities
         {
             if (Description == null || Description.Trim() == "")
             {
-                throw new MissingCategoryDataException("No se puede dejar la categoría vacía");
+                throw new MissingCategoryDataException("No se puede dejar la descripción vacía");
             }
         }
 

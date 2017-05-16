@@ -13,10 +13,12 @@ namespace Services.Implementations
     public class CategoryService : ICategoryService
     {
         private IGenericRepository<Category> categoryRepository;
+        private IGenericRepository<Product> productRepository;
 
-        public CategoryService(IGenericRepository<Category> repo)
+        public CategoryService(IGenericRepository<Category> repo, IGenericRepository<Product> productRepo)
         {
             categoryRepository = repo;
+            productRepository = productRepo;
         }
 
         public void Add(Category c)
@@ -37,6 +39,12 @@ namespace Services.Implementations
         }
 
         public void Delete(System.Guid id) {
+            List<Product> allProducts = productRepository.GetAll();
+            List<Product> productsWithCat = allProducts.FindAll(p => p.Category != null && p.Category.Id == id);
+            foreach (Product p in productsWithCat) {
+                p.Category = null;
+                productRepository.Update(p);
+            }
             bool deleted = categoryRepository.Delete(id);
             if (!deleted) {
                 throw new NotExistingCategoryException();
@@ -49,7 +57,10 @@ namespace Services.Implementations
         }
 
         public Category Get(Guid id) {
-            return categoryRepository.Get(id);
+            Category c = categoryRepository.Get(id);
+            if (c != null)
+                return c;
+            throw new NotExistingCategoryException("No hay categoría con este id");
         }
 
         public void Modify(Category c, string name, string description)

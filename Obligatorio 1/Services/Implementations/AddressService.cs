@@ -35,9 +35,9 @@ namespace Services.Implementations
             }
         }
 
-        private void checkForExistingAddress(Address a)
+        private void checkForExistingAddress(Guid aId)
         {
-            Address existing = addressRepo.Get(a.Id);
+            Address existing = addressRepo.Get(aId);
             if (existing == null)
             {
                 throw new AddressDeleteNoAddressException("No se puede borrar ya que no existe tal dirección");
@@ -64,19 +64,19 @@ namespace Services.Implementations
                 throw new UserAlreadyHasAddressException("El usuario ya tiene esta dirección");
         }
 
-        public void RemoveAddress(Address a2, User u)
+        public void RemoveAddress(Guid aId, User u)
         {
             checkForExistingUser(u);
-            checkForExistingAddress(a2);
-            if (u.Address == a2)
+            checkForExistingAddress(aId);
+            if (u.Address.Id == aId)
             {
-                removeDefaultAddress(a2, u);
+                removeDefaultAddress(aId, u);
             }
-            else removeListAddress(a2, u);
+            else removeListAddress(aId, u);
             userRepo.Update(u);
         }
 
-        private void removeDefaultAddress(Address a2, User u)
+        private void removeDefaultAddress(Guid aId, User u)
         {
             if (u.Addresses.Count() != 0)
             {
@@ -87,10 +87,11 @@ namespace Services.Implementations
             else throw new AddressDeleteDefaultNoReplacementException("Para borrar la dirección con la que se registró debe tener por lo menos una dirección asociada");
         }
 
-        private void removeListAddress(Address a2, User u)
+        private void removeListAddress(Guid aId, User u)
         {
-            if (u.Addresses.Contains(a2))
-                u.Addresses.Remove(a2);
+            Address firstAddress = u.Addresses.FirstOrDefault(add => add.Id == aId);
+            if (firstAddress != null)
+                u.Addresses.Remove(firstAddress);
             else throw new AddressDeleteUserDoesntHaveException("Este usuario no tiene esta dirección");
         }
 

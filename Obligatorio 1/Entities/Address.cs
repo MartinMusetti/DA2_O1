@@ -49,8 +49,9 @@ namespace Entities
             }
         }
 
-        public override bool Equals(object obj)
+       /* public override bool Equals(object obj)
         {
+            var type = obj.GetType();
             if (obj.GetType() == typeof(Address))
             {
                 Address a = (Address)obj;
@@ -58,7 +59,7 @@ namespace Entities
             }
             return false;
         }
-
+        */
 
     }
 }

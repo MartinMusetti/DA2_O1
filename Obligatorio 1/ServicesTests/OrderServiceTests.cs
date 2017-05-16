@@ -70,7 +70,8 @@ namespace ServicesTests
         private CategoryService getCategoryService()
         {
             GenericRepository<Category> repoInstance = new GenericRepository<Category>(getContext());
-            return new CategoryService(repoInstance);
+            GenericRepository<Product> pRepoInstance = new GenericRepository<Product>(getContext());
+            return new CategoryService(repoInstance, pRepoInstance);
         }
 
         private Category getCategory()
